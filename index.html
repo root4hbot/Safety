@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>نموذج بلاغ ابتزاز</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f0f0f0;
+      padding: 30px;
+      direction: rtl;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #009688;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="reportForm">
+    <h2>📩 نموذج بلاغ ابتزاز</h2>
+
+    <label for="name">الاسم</label>
+    <input type="text" id="name" required placeholder="اسم الضحية أو اسم مستعار">
+
+    <label for="type">نوع الابتزاز</label>
+    <select id="type" required>
+      <option value="">-- اختر النوع --</option>
+      <option>ابتزاز مادي</option>
+      <option>جنسي</option>
+      <option>عاطفي</option>
+      <option>تهديد بالنشر</option>
+      <option>نوع آخر</option>
+    </select>
+
+    <label for="details">التفاصيل</label>
+    <textarea id="details" rows="5" required placeholder="اكتبي تفاصيل الحالة أو الرسائل التي وصلتك"></textarea>
+
+    <button type="submit">إرسال البلاغ</button>
+  </form>
+
+  <script>
+    document.getElementById("reportForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const data = {
+        name: document.getElementById("name").value,
+        type: document.getElementById("type").value,
+        details: document.getElementById("details").value
+      };
+
+      fetch("https://safety-lwg7.onrender.com/telegram.php", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      })
+      .then(response => response.text())
+      .then(message => {
+        alert("📬 رد السيرفر: " + message);
+        document.getElementById("reportForm").reset();
+      })
+      .catch(error => {
+        alert("⚠️ حدث خطأ أثناء إرسال البلاغ: " + error.message);
+        console.error("تفاصيل:", error);
+      });
+    });
+  </script>
+
+</body>
+</html>
