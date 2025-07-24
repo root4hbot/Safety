@@ -1,21 +1,45 @@
 <?php
+// استدعاء التوكن والمعرف من البيئة
 $token = getenv("BOT_TOKEN");
 $chat_id = getenv("CHAT_ID");
 
-// التأكد من استقبال البيانات بشكل صحيح
-$data = json_decode(file_get_contents("php://input"), true);
+// التحقق من نوع الطلب
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo "⚠️ الطلب غير مسموح، يجب أن يكون POST";
+    exit;
+}
 
-// التحقق من وجود القيم
-$name = isset($data['name']) ? $data['name'] : '❓ غير محدد';
-$type = isset($data['type']) ? $data['type'] : '❓ غير معروف';
-$details = isset($data['details']) ? $data['details'] : '❓ بدون تفاصيل';
+// استقبال البيانات وفك JSON
+$rawData = file_get_contents("php://input");
+$data = json_decode($rawData, true);
+
+// التحقق من أن البيانات وصلت بصيغة صحيحة
+if (!is_array($data)) {
+    http_response_code(400);
+    echo "⚠️ البيانات غير صالحة أو ليست بصيغة JSON.";
+    exit;
+}
+
+// استخراج القيم مع تحقق من وجودها
+$name = isset($data['name']) ? $data['name'] : '❓ الاسم غير موجود';
+$type = isset($data['type']) ? $data['type'] : '❓ النوع غير محدد';
+$details = isset($data['details']) ? $data['details'] : '❓ لا توجد تفاصيل';
 
 // تركيب الرسالة
-$text = "📢 بلاغ جديد:\n".
-        "👤 الاسم: ".$name."\n".
-        "📌 نوع الإنذار: ".$type."\n".
-        "📝 التفاصيل:\n".$details;
+$message = "📢 بلاغ جديد:\n";
+$message .= "👤 الاسم: $name\n";
+$message .= "📌 نوع الابتزاز: $type\n";
+$message .= "📝 التفاصيل:\n$details";
 
-// إرسال الرسالة
-file_get_contents("https://api.telegram.org/bot$token/sendMessage?chat_id=$chat_id&text=".urlencode($text));
+// إرسال البلاغ إلى تلغرام
+$response = file_get_contents("https://api.telegram.org/bot$token/sendMessage?chat_id=$chat_id&text=" . urlencode($message));
+
+// تأكيد الإرسال
+if ($response) {
+    echo "✅ تم إرسال البلاغ إلى البوت";
+} else {
+    http_response_code(500);
+    echo "⚠️ فشل في إرسال البلاغ.";
+}
 ?>
